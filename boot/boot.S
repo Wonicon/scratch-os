@@ -13,7 +13,12 @@
 start:
   .code16                     # Assemble for 16-bit mode
   cli                         # Disable interrupts
-  movw  $0x13, %ax
+
+  # INT 10H, AH = 00H 设置 VGA 设备的 Video Mode
+  # AL = 13H #=> 320 * 200 256 color graphics
+  # AL = 03H #=> 80 * 25 16 color text
+  # 更多模式参见 http://stanislavs.org/helppc/int_10-0.html
+  movw  $0x03, %ax
   int   $0x10
   cld                         # String operations increment
 
@@ -27,21 +32,22 @@ start:
   #   For backwards compatibility with the earliest PCs, physical
   #   address line 20 is tied low, so that addresses higher than
   #   1MB wrap around to zero by default.  This code undoes this.
-# seta20.1:
-#   inb     $0x64,%al               # Wait for not busy
-#   testb   $0x2,%al
-#   jnz     seta20.1
-# 
-#   movb    $0xd1,%al               # 0xd1 -> port 0x64
-#   outb    %al,$0x64
-# 
-# seta20.2:
-#   inb     $0x64,%al               # Wait for not busy
-#   testb   $0x2,%al
-#   jnz     seta20.2
-# 
-#   movb    $0xdf,%al               # 0xdf -> port 0x60
-#   outb    %al,$0x60
+
+  seta20.1:
+    inb     $0x64,%al               # Wait for not busy
+    testb   $0x2,%al
+    jnz     seta20.1
+
+    movb    $0xd1,%al               # 0xd1 -> port 0x64
+    outb    %al,$0x64
+
+  seta20.2:
+    inb     $0x64,%al               # Wait for not busy
+    testb   $0x2,%al
+    jnz     seta20.2
+
+    movb    $0xdf,%al               # 0xdf -> port 0x60
+    outb    %al,$0x60
 
   # Switch from real to protected mode, using a bootstrap GDT
   # and segment translation that makes virtual addresses 
