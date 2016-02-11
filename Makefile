@@ -30,8 +30,6 @@ BOOT_O += $(BOOT_C:%.c=$(OBJ_DIR)/%.o)
 KERNEL_C := $(wildcard $(KERNEL_DIR)/*.c)
 KERNEL_O := $(KERNEL_C:%.c=$(OBJ_DIR)/%.o)
 
-KERNEL_C := $(wildcard $(KERNEL_DIR)/*.c)
-
 $(IMAGE): $(BOOT) $(KERNEL)
 	$(DD) if=/dev/zero of=$(IMAGE) count=10000          # 准备磁盘文件
 	$(DD) if=$(BOOT) of=$(IMAGE) conv=notrunc           # 填充 boot loader
