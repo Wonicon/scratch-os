@@ -18,7 +18,7 @@ start:
   # AL = 13H #=> 320 * 200 256 color graphics
   # AL = 03H #=> 80 * 25 16 color text
   # 更多模式参见 http://stanislavs.org/helppc/int_10-0.html
-  movw  $0x03, %ax
+  movw  $0x13, %ax
   int   $0x10
   cld                         # String operations increment
 

@@ -15,7 +15,7 @@ typedef union {
     uint8_t value;
 } Attribute;
 
-int main(void)
+void hello_world(void)
 {
     /**
      * 代码参考自 http://wiki.0xffffff.org/posts/hurlex-3.html
@@ -33,6 +33,16 @@ int main(void)
     while (*str) {
         *input++ = *str++;
         *input++ = attr.value;
+    }
+}
+
+int main(void)
+{
+    uint8_t *vmem = (uint8_t *)0xA0000;
+    uint8_t pixel = 0x00;
+    int i;
+    for (i = 0; i < 256; i++) {
+        *vmem++ = pixel++;
     }
 
     return 0;
