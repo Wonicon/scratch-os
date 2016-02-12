@@ -14,7 +14,8 @@ CFLAGS += -I .
 CFLAGS += -O0
 CFLAGS += -fno-builtin
 
-QEMU_OPTIONS := -serial stdio -monitor telnet:127.0.0.1:1234,server,nowait
+QEMU_OPTIONS := -serial stdio
+QEMU_OPTIONS += -monitor telnet:127.0.0.1:1234,server,nowait
 
 OBJ_DIR        := obj
 LIB_DIR        := lib
