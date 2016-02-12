@@ -1,5 +1,6 @@
-#include <inc/x86.h>
+#include "debug.h"
 #include "serial.h"
+#include <inc/x86.h>
 
 typedef unsigned char uint8_t;
 
@@ -43,6 +44,8 @@ int
 main(void)
 {
     init_serial_com1();
+    
+    LOG("Hello World :-)");
 
     uint8_t *vmem = (uint8_t *)0xA0000;
     uint8_t pixel = 0x00;
