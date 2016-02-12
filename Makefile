@@ -8,8 +8,8 @@ OBJCOPY := objcopy
 DD      := dd
 QEMU    := qemu-system-i386
 
-CFLAGS := -Wall -Werror -Wfatal-errors
-CFLAGS += -std=gnu11 -m32 -c -MD
+CFLAGS := -Wall -Werror -Wfatal-errors -MD
+CFLAGS += -std=gnu11 -m32 -c
 CFLAGS += -I .
 CFLAGS += -O0
 CFLAGS += -fno-builtin
@@ -65,6 +65,9 @@ $(OBJ_LIB_DIR)/%.o : $(LIB_DIR)/%.c
 $(OBJ_KERNEL_DIR)/%.o: $(KERNEL_DIR)/%.c
 	@mkdir -p $(OBJ_KERNEL_DIR)
 	$(CC) $(CFLAGS) $< -o $@
+
+OBJS := $(shell find $(OBJ_DIR) -name "*.d")
+-include $(OBJS)
 
 .PHONY: qemu clean
 

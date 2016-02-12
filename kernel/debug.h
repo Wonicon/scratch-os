@@ -3,8 +3,6 @@
 
 int serial_printf(const char *fmt, ...);
 
-#define _CONCAT(x, y) x ## y
-#define CONCAT(x, y) _CONCAT(x, y)
 #define STR(x) # x
 
 #define END         "\e[0m"
