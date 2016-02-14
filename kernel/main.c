@@ -1,5 +1,6 @@
 #include "debug.h"
 #include "serial.h"
+#include "vesa.h"
 #include <inc/x86.h>
 
 typedef unsigned char uint8_t;
@@ -53,6 +54,8 @@ main(void)
     for (i = 0; i < 256; i++) {
         *vmem++ = pixel++;
     }
+
+    get_vbe_info();
 
     return 0;
 }

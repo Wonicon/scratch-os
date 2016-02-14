@@ -13,6 +13,7 @@ CFLAGS += -std=gnu11 -m32 -c
 CFLAGS += -I .
 CFLAGS += -O0
 CFLAGS += -fno-builtin
+CFLAGS += -fno-stack-protector
 
 QEMU_OPTIONS := -serial stdio
 QEMU_OPTIONS += -monitor telnet:127.0.0.1:1234,server,nowait
