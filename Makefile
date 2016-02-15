@@ -7,6 +7,7 @@ LD      := ld
 OBJCOPY := objcopy
 DD      := dd
 QEMU    := qemu-system-i386
+GDB     := gdb
 
 CFLAGS := -Wall -Werror -Wfatal-errors -MD
 CFLAGS += -std=gnu11 -m32 -c
@@ -14,9 +15,16 @@ CFLAGS += -I .
 CFLAGS += -O0
 CFLAGS += -fno-builtin
 CFLAGS += -fno-stack-protector
+CFLAGS += -ggdb3
 
 QEMU_OPTIONS := -serial stdio
-QEMU_OPTIONS += -monitor telnet:127.0.0.1:1234,server,nowait
+QEMU_OPTIONS += -monitor telnet:127.0.0.1:1111,server,nowait
+
+QEMU_DEBUG_OPTIONS := -S
+QEMU_DEBUG_OPTIONS += -s
+
+GDB_OPTIONS := -ex "target remote localhost:1234"
+GDB_OPTIONS += -ex "symbol $(KERNEL)"
 
 OBJ_DIR        := obj
 LIB_DIR        := lib
@@ -70,10 +78,16 @@ $(OBJ_KERNEL_DIR)/%.o: $(KERNEL_DIR)/%.c
 OBJS := $(shell find $(OBJ_DIR) -name "*.d")
 -include $(OBJS)
 
-.PHONY: qemu clean
+.PHONY: qemu debug gdb clean
 
 qemu: $(IMAGE)
 	$(QEMU) $(QEMU_OPTIONS) $(IMAGE)
+
+debug: $(IMAGE)
+	$(QEMU) $(QEMU_DEBUG_OPTIONS) $(QEMU_OPTIONS) $(IMAGE)
+
+gdb:
+	$(GDB) $(GDB_OPTIONS)
 
 clean:
 	@rm -rf $(OBJ_DIR) 2> /dev/null

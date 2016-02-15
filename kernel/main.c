@@ -55,7 +55,7 @@ main(void)
         *vmem++ = pixel++;
     }
 
-    get_vbe_info();
+    //get_vbe_info();
 
     return 0;
 }

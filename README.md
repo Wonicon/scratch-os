@@ -6,3 +6,11 @@ boot, inc 和 lib 目录下的代码来自[JOS](https://pdos.csail.mit.edu/6.828
 ```shell
 make qemu
 ```
+
+GDB 调试：
+```shell
+# 终端 A
+make debug
+# 终端 B
+make gdb
+```
