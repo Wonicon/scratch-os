@@ -12,6 +12,7 @@
 .globl start
 start:
   .code16                     # Assemble for 16-bit mode
+  int3
   cli                         # Disable interrupts
 
   # INT 10H, AH = 00H 设置 VGA 设备的 Video Mode
@@ -86,8 +87,9 @@ gdt:
   SEG_NULL				# null seg
   SEG(STA_X|STA_R, 0x0, 0xffffffff)	# code seg
   SEG(STA_W, 0x0, 0xffffffff)	        # data seg
+  SEG(STA_X|STA_R, 0x100000, 0xffffffff) # for VM
 
 gdtdesc:
-  .word   0x17                            # sizeof(gdt) - 1
+  .word   0x1f                            # sizeof(gdt) - 1
   .long   gdt                             # address gdt
 

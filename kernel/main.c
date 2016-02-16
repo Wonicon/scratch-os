@@ -2,8 +2,8 @@
 #include "serial.h"
 #include "vesa.h"
 #include <inc/x86.h>
+#include <inc/types.h>
 
-typedef unsigned char uint8_t;
 
 /**
  * 文字模式字符显式属性格式
@@ -41,6 +41,82 @@ void hello_world(void)
     }
 }
 
+/**
+ * 玩耍 virtual 8086 mode 的地方
+ */
+
+/**
+ * LIDT 使用的数据
+ */
+
+#include <inc/mmu.h>
+
+struct __attribute__((packed)) IDTR {
+    uint16_t limit; // IDT 的界限, 应该是直接相加的
+    uint32_t base;  // IDT 的线性基地址
+};
+
+struct __attribute__((packed)) StackFrame {
+    uint32_t eip;
+    uint32_t cs;
+    uint32_t eflags;
+};
+
+#define LOG_EXPR(expr) LOG(STR(expr) " is %x", expr)
+void vec(struct StackFrame *frame)
+{
+    /**
+     * IVT 与 IDT 是不同的
+     * http://wiki.osdev.org/Interrupt_Vector_Table
+     */
+    LOG_EXPR(frame->eflags);
+    LOG_EXPR(frame->eip);
+    LOG_EXPR(frame->cs);
+    frame->eflags |= 0x23000; // Set VM to 1, IOPL to 3
+    struct {
+        uint16_t offset;
+        uint16_t segment;
+    } *ivt = (void *)0;
+    frame->cs = ivt[0x3].segment;
+    frame->eip = ivt[0x3].offset;
+}
+
+struct Gatedesc idt[] = {
+    {},
+};
+
+void entry(void);
+
+void
+vm(void)
+{
+    // 这个用于 LIDT 的结构体放在栈空间上足够了
+    idt[0].gd_sel = 0x8;
+    idt[0].gd_p = 1;
+    idt[0].gd_dpl = 0;
+    idt[0].gd_s = 0;
+    idt[0].gd_rsv1 = 0;
+    idt[0].gd_args = 0;
+    idt[0].gd_type = STS_IG32;
+    idt[0].gd_off_15_0 = (uint32_t)entry & 0x0000ffff;
+    idt[0].gd_off_31_16 = ((uint32_t)entry & 0xffff0000) >> 16;
+
+    struct IDTR idtr = {
+        .limit = sizeof(idt) - 1,
+        .base  = (uint32_t)idt,
+    };
+
+    LOG("idt.limit = %x, idt.base = %x", idtr.limit, idtr.base);
+
+    /**
+     * http://wiki.osdev.org/Inline_Assembly/Examples#LIDT
+     * 第一个操作数，内存型
+     */
+    asm volatile ("lidt %0"::"m"(idtr):);
+    asm volatile ("int $0x00");
+    LOG("hello!");
+}
+
 int
 main(void)
 {
@@ -55,6 +131,7 @@ main(void)
         *vmem++ = pixel++;
     }
 
+    vm();
     //get_vbe_info();
 
     return 0;

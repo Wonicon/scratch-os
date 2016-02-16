@@ -23,7 +23,7 @@ QEMU_OPTIONS += -monitor telnet:127.0.0.1:1111,server,nowait
 QEMU_DEBUG_OPTIONS := -S
 QEMU_DEBUG_OPTIONS += -s
 
-GDB_OPTIONS := -ex "target remote localhost:1234"
+GDB_OPTIONS := -ex "target remote 127.0.0.1:1234"
 GDB_OPTIONS += -ex "symbol $(KERNEL)"
 
 OBJ_DIR        := obj
@@ -43,7 +43,9 @@ BOOT_O := $(BOOT_S:%.S=$(OBJ_DIR)/%.o)
 BOOT_O += $(BOOT_C:%.c=$(OBJ_DIR)/%.o)
 
 KERNEL_C := $(wildcard $(KERNEL_DIR)/*.c)
+KERNEL_S := $(wildcard $(KERNEL_DIR)/*.S)
 KERNEL_O := $(KERNEL_C:%.c=$(OBJ_DIR)/%.o)
+KERNEL_O += $(KERNEL_S:%.S=$(OBJ_DIR)/%.o)
 
 $(IMAGE): $(BOOT) $(KERNEL)
 	@$(DD) if=/dev/zero of=$(IMAGE) count=10000         > /dev/null # 准备磁盘文件
@@ -71,7 +73,7 @@ $(OBJ_LIB_DIR)/%.o : $(LIB_DIR)/%.c
 	@mkdir -p $(OBJ_LIB_DIR)
 	$(CC) $(CFLAGS) $< -o $@
 
-$(OBJ_KERNEL_DIR)/%.o: $(KERNEL_DIR)/%.c
+$(OBJ_KERNEL_DIR)/%.o: $(KERNEL_DIR)/%.[cS]
 	@mkdir -p $(OBJ_KERNEL_DIR)
 	$(CC) $(CFLAGS) $< -o $@
 
