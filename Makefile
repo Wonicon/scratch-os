@@ -17,7 +17,7 @@ CFLAGS += -fno-builtin
 CFLAGS += -fno-stack-protector
 CFLAGS += -ggdb3
 
-QEMU_OPTIONS := -serial stdio -d int,cpu_reset
+QEMU_OPTIONS := -serial stdio -d int
 QEMU_OPTIONS += -monitor telnet:127.0.0.1:1111,server,nowait
 
 QEMU_DEBUG_OPTIONS := -S
@@ -42,7 +42,7 @@ BOOT_C := $(wildcard $(BOOT_DIR)/*.c)
 BOOT_O := $(BOOT_S:%.S=$(OBJ_DIR)/%.o)
 BOOT_O += $(BOOT_C:%.c=$(OBJ_DIR)/%.o)
 
-KERNEL_C := $(wildcard $(KERNEL_DIR)/*.c)
+KERNEL_C := $(shell find $(KERNEL_DIR) -name "*.c")
 KERNEL_S := $(wildcard $(KERNEL_DIR)/*.S)
 KERNEL_O := $(KERNEL_C:%.c=$(OBJ_DIR)/%.o)
 KERNEL_O += $(KERNEL_S:%.S=$(OBJ_DIR)/%.o)
@@ -74,10 +74,10 @@ $(OBJ_LIB_DIR)/%.o : $(LIB_DIR)/%.c
 	$(CC) $(CFLAGS) $< -o $@
 
 $(OBJ_KERNEL_DIR)/%.o: $(KERNEL_DIR)/%.[cS]
-	@mkdir -p $(OBJ_KERNEL_DIR)
+	mkdir -p $(OBJ_DIR)/$(dir $<)
 	$(CC) $(CFLAGS) $< -o $@
 
-OBJS := $(shell find $(OBJ_DIR) -name "*.d")
+OBJS := $(shell find ./$(OBJ_DIR) -name "*.d")
 -include $(OBJS)
 
 .PHONY: qemu debug gdb clean

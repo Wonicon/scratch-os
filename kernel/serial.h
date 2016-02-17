@@ -4,7 +4,7 @@
 /**
  * 初始化第一个串口设备
  */
-void init_serial_com1(void);
+void init_serial(void);
 
 /**
  * 向第一个串口设备输出字符

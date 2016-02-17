@@ -14,12 +14,6 @@ start:
   .code16                     # Assemble for 16-bit mode
   cli                         # Disable interrupts
 
-  # INT 10H, AH = 00H 设置 VGA 设备的 Video Mode
-  # AL = 13H #=> 320 * 200 256 color graphics
-  # AL = 03H #=> 80 * 25 16 color text
-  # 更多模式参见 http://stanislavs.org/helppc/int_10-0.html
-  movw  $0x13, %ax
-  int   $0x10
   cld                         # String operations increment
 
   # Set up the important data segment registers (DS, ES, SS).
@@ -27,6 +21,26 @@ start:
   movw    %ax,%ds             # -> Data Segment
   movw    %ax,%es             # -> Extra Segment
   movw    %ax,%ss             # -> Stack Segment
+
+  # 设置显式模式为 800 x 600 x 24位色
+  #   利用 QEMU 支持的 VBE 功能设置更高的分辨率和更丰富的色彩
+  #
+  #   规范的利用 VBE 设置视频模式的做法应该是访问显示卡的控制
+  #   器信息获得模式编号数组,然后遍历数组查询数组获得各个模式
+  #   的具体参数再进行设置,即模式号并不由标准指定.
+  #
+  #   由于在保护模式下使用 VBE 比较困难, 所以这里硬编码需要的
+  #   显式模式,编号 0x0115 在 QEMU 2.0 上验证是模式 800 x 600
+  #   x 24位色对应的编号.
+
+  mov $0x4f01, %ax # 查询 ModeInfoBlock
+  mov $0x0115, %cx # 指定 800 x 600 x 24位色 对应的 Mode
+  mov $0xf000, %di # 内存地址 es:di
+  int $0x10        # VGA Bios 服务
+
+  mov $0x4f02, %ax # 设置 Mode
+  mov $0x0115, %bx # 800 x 600 x 24位色对应的 Mode 编号
+  int $0x10        # VGA Bios 服务
 
   # Enable A20:
   #   For backwards compatibility with the earliest PCs, physical

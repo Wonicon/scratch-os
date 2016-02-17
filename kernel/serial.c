@@ -9,7 +9,7 @@
 #define COM1 0x3f8
 
 static void
-init_serial(int port)
+init_serial_com(int port)
 {
     outb(port + 1, 0x00);  // Disable all interrupts
     outb(port + 3, 0x80);  // Enable DLAB (set baud rate divisor)
@@ -34,9 +34,9 @@ write_serial(int port, char ch)
 }
 
 void
-init_serial_com1(void)
+init_serial(void)
 {
-    init_serial(COM1);
+    init_serial_com(COM1);
 }
 
 void
