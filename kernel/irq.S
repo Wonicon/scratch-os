@@ -5,15 +5,19 @@ entry:
     # EFLAGS
     # CS
     # EIP
-    push $0
-    push $0x7c00
-    movl 8(%esp), %edi
+    pushl $0   # GS
+    pushl $0   # FS
+    pushl $0   # DS
+    pushl $0   # ES
+    pushl $0   # SS
+    leal 0x14(%esp), %edi
     pushl %edi
-    movl 8(%esp), %edi
-    pushl %edi
-    movl 8(%esp), %edi
-    pushl %edi
-    push %esp
+    movl 0x20(%esp), %edi
+    pushl %edi # EFLAGS
+    pushl $0   # 反正要被改掉
+    pushl $0   # 反正要被改掉
+    pushl %esp
     call vec
     addl $4, %esp
+    movw 0x0013, %ax
     iret

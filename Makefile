@@ -17,7 +17,7 @@ CFLAGS += -fno-builtin
 CFLAGS += -fno-stack-protector
 CFLAGS += -ggdb3
 
-QEMU_OPTIONS := -serial stdio
+QEMU_OPTIONS := -serial stdio -d int,cpu_reset
 QEMU_OPTIONS += -monitor telnet:127.0.0.1:1111,server,nowait
 
 QEMU_DEBUG_OPTIONS := -S

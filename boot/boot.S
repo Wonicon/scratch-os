@@ -12,7 +12,6 @@
 .globl start
 start:
   .code16                     # Assemble for 16-bit mode
-  int3
   cli                         # Disable interrupts
 
   # INT 10H, AH = 00H 设置 VGA 设备的 Video Mode
@@ -74,7 +73,7 @@ protcseg:
   movw    %ax, %ss                # -> SS: Stack Segment
   
   # Set up the stack pointer and call into C.
-  movl    $start, %esp
+  movl    $0xffff, %esp
   call bootmain
 
   # If bootmain returns (it shouldn't), loop.

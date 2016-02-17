@@ -1,8 +1,10 @@
+#include "vesa.h"
 #include "debug.h"
 #include "serial.h"
-#include "vesa.h"
+#include "segment.h"
 #include <inc/x86.h>
 #include <inc/types.h>
+#include <inc/mmu.h>
 
 
 /**
@@ -51,18 +53,12 @@ void hello_world(void)
 
 #include <inc/mmu.h>
 
-struct __attribute__((packed)) IDTR {
-    uint16_t limit; // IDT 的界限, 应该是直接相加的
-    uint32_t base;  // IDT 的线性基地址
-};
-
 struct __attribute__((packed)) StackFrame {
     uint32_t eip;
     uint32_t cs;
     uint32_t eflags;
 };
 
-#define LOG_EXPR(expr) LOG(STR(expr) " is %x", expr)
 void vec(struct StackFrame *frame)
 {
     /**
@@ -77,8 +73,8 @@ void vec(struct StackFrame *frame)
         uint16_t offset;
         uint16_t segment;
     } *ivt = (void *)0;
-    frame->cs = ivt[0x3].segment;
-    frame->eip = ivt[0x3].offset;
+    frame->cs = ivt[0x10].segment;
+    frame->eip = ivt[0x10].offset;
 }
 
 struct Gatedesc idt[] = {
@@ -101,7 +97,7 @@ vm(void)
     idt[0].gd_off_15_0 = (uint32_t)entry & 0x0000ffff;
     idt[0].gd_off_31_16 = ((uint32_t)entry & 0xffff0000) >> 16;
 
-    struct IDTR idtr = {
+    DTR idtr = {
         .limit = sizeof(idt) - 1,
         .base  = (uint32_t)idt,
     };
@@ -120,15 +116,20 @@ vm(void)
 int
 main(void)
 {
+    init_gdt();
+
     init_serial_com1();
     
     LOG("Hello World :-)");
 
     uint8_t *vmem = (uint8_t *)0xA0000;
     uint8_t pixel = 0x00;
-    int i;
-    for (i = 0; i < 256; i++) {
-        *vmem++ = pixel++;
+    for (int y = 0; y < 200; y++) {
+        uint8_t *line = vmem;
+        for (int x = 0; x < 256; x++) {
+            *line++ = pixel++;
+        }
+        vmem += 320;
     }
 
     vm();
