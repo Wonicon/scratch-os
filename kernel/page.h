@@ -30,4 +30,10 @@ typedef PTE PDE;
 
 void init_page(void);
 
+uint32_t alloc_page(void);
+
+void release_page(uint32_t frame);
+
+void test_page(void);
+
 #endif  // KERNEL_PAGE_H

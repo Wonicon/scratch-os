@@ -30,7 +30,12 @@ main(void)
         }
     }
 
+    /**
+     * Test int
+     */
     asm volatile ("int $0x0");
+
+    test_page();
 
     return 0;
 }
