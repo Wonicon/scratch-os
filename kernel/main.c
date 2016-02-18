@@ -3,9 +3,12 @@
 #include "serial.h"
 #include "segment.h"
 #include "video.h"
+#include "page.h"
 #include <inc/x86.h>
 #include <inc/types.h>
 #include <inc/mmu.h>
+
+extern char end[];
 
 int
 main(void)
@@ -14,8 +17,11 @@ main(void)
     init_video();
     init_gdt();
     init_idt();
+    init_page();
     
     LOG("Hello World :-)");
+
+    LOG("end is %p", end);
 
     for (int y = 0; y < 455; y++) {
         for (int x = 0; x < 600; x++) {

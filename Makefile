@@ -34,6 +34,8 @@ OBJ_LIB_DIR    := $(OBJ_DIR)/$(LIB_DIR)
 OBJ_BOOT_DIR   := $(OBJ_DIR)/$(BOOT_DIR)
 OBJ_KERNEL_DIR := $(OBJ_DIR)/$(KERNEL_DIR)
 
+LD_SCRIPT := $(shell find $(KERNEL_DIR) -name "*.ld")
+
 LIB_C := $(wildcard $(LIB_DIR)/*.c)
 LIB_O := $(LIB_C:%.c=$(OBJ_DIR)/%.o)
 
@@ -66,8 +68,9 @@ $(OBJ_BOOT_DIR)/%.o: $(BOOT_DIR)/%.c
 	@mkdir -p $(OBJ_BOOT_DIR)
 	$(CC) $(CFLAGS) -Os $< -o $@
 
+$(KERNEL): $(LD_SCRIPT)
 $(KERNEL): $(KERNEL_O) $(LIB_O)
-	$(LD) -e main -Ttext=0x100000 -m elf_i386 -nostdlib -o $@ $^ $(shell $(CC) $(CFLAGS) -print-libgcc-file-name)
+	$(LD) -m elf_i386 -T $(LD_SCRIPT) -nostdlib -o $@ $^ $(shell $(CC) $(CFLAGS) -print-libgcc-file-name)
 
 $(OBJ_LIB_DIR)/%.o : $(LIB_DIR)/%.c
 	@mkdir -p $(OBJ_LIB_DIR)
@@ -77,8 +80,8 @@ $(OBJ_KERNEL_DIR)/%.o: $(KERNEL_DIR)/%.[cS]
 	mkdir -p $(OBJ_DIR)/$(dir $<)
 	$(CC) $(CFLAGS) $< -o $@
 
-OBJS := $(shell find ./$(OBJ_DIR) -name "*.d")
--include $(OBJS)
+DEPS := $(shell find -name "*.d")
+-include $(DEPS)
 
 .PHONY: qemu debug gdb clean
 
