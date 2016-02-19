@@ -1,9 +1,9 @@
-#ifndef KERNEL_PIC_H
-#define KERNEL_PIC_H
+#ifndef PIC_pic_H
+#define PIC_pic_H
 
-extern unsigned char bgr[];
-extern unsigned int pic_len;
-extern unsigned int pic_h;
-extern unsigned int pic_w;
+extern unsigned char pic_bgr[];
+extern unsigned int pic_bgr_len;
+extern int pic_w;
+extern int pic_h;
 
-#endif  // KERNEL_PIC_H
+#endif  // PIC_pic_H
