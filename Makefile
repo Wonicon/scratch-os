@@ -88,6 +88,10 @@ DEPS := $(shell find -name "*.d")
 qemu: $(IMAGE)
 	$(QEMU) $(QEMU_OPTIONS) $(IMAGE)
 
+# Faster, but not suitable for debugging
+qemu-kvm: $(IMAGE)
+	$(QEMU) $(QEMU_OPTIONS) --enable-kvm $(IMAGE)
+
 debug: $(IMAGE)
 	$(QEMU) $(QEMU_DEBUG_OPTIONS) $(QEMU_OPTIONS) $(IMAGE)
 

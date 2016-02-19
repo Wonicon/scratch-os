@@ -3,6 +3,8 @@
 
 int serial_printf(const char *fmt, ...);
 
+#define swap(x, y) do { typeof(x) z = x; x = y; y = z; } while (0)
+
 #define STR(x) # x
 
 #define END         "\e[0m"
