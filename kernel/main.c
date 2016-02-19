@@ -10,6 +10,35 @@
 
 extern char end[];
 
+/**
+ * 阻塞型
+ * 返回 press 扫喵码
+ */
+static inline uint32_t
+get_key(void)
+{
+    uint32_t scancode;
+    uint32_t esccode;
+
+    do {
+        scancode = inb(0x60);
+        if (scancode == 0xE0) {
+            scancode = (scancode << 8) | inb(0x60);
+        }
+    } while ((scancode & 0x80));
+
+    // wait release
+    do {
+        esccode = inb(0x60);
+        if (esccode == 0xE0) {
+            esccode = (esccode << 8) | inb(0x60);
+        }
+    } while (esccode != (scancode | 0x80));
+
+    return scancode;
+}
+
+#define swap(x, y) do { typeof(x) z = x; x = y; y = z; } while (0)
 int
 main(void)
 {
@@ -44,6 +73,14 @@ main(void)
 
     int scr_h = get_scr_h();
     int scr_w = get_scr_w();
+
+    int block_x = 0;
+    int block_y = 0;
+
+    int check_state = 0;  // 0 for init, 1 for exchange
+    int check_block_x = 0;
+    int check_block_y = 0;
+
 loop:
     init_video_buffer();
 
@@ -72,9 +109,45 @@ loop:
         int scr_y = i * block_height;
         draw_row(0, scr_y, 6, scr_w, 0);
     }
-    draw_border(0, 0, block_width, block_height, 3, 0x000000ff);
+
+
+    draw_border(block_x * block_width, block_y * block_height, block_width, block_height, 3, 0x000000ff);
+
+    if (check_state == 1) {
+        draw_border(check_block_x * block_width, check_block_y * block_height, block_width, block_height, 3, 0x00ff0000);
+    }
 
     update_screen();
+
+    uint32_t scancode = get_key();
+    LOG_EXPR(scancode);
+
+    if (scancode == 0x0039) {
+        LOG("hello");
+        if (check_state == 0) {
+            check_state = 1;
+            check_block_x = block_x;
+            check_block_y = block_y;
+        }
+        else {
+            check_state = 0;
+            int block_first = block_y * nr_horizonal_blocks + block_x;
+            int block_second = check_block_y * nr_horizonal_blocks + check_block_x;
+            swap(blocks[block_first], blocks[block_second]);
+        }
+    }
+
+    if      (scancode == 0xe050) block_y++; 
+    else if (scancode == 0xe048) block_y--;
+    else if (scancode == 0xe04b) block_x--;
+    else if (scancode == 0xe04d) block_x++;
+
+    if (block_y >= nr_vertical_blocks) block_y = 0;
+    else if (block_y < 0)              block_y = nr_vertical_blocks - 1;
+
+    if (block_x >= nr_horizonal_blocks) block_x = 0;
+    else if (block_x < 0)               block_x = nr_horizonal_blocks - 1;
+
     goto loop;
 
     return 0;
