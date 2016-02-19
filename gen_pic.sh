@@ -19,8 +19,8 @@ pic="$1" # $1 有空格会被分开视作独立的元素
 out=$(basename "$pic" | cut -d '.' -f 1 | sed 's/ /_/g')
 
 # 将图片转换成纯像素数组, BGR 排序, 二进制文件
-echo "Convert to BGR binary file ${out}.rgb"
-rgb="$out.rgb"
+echo "Convert to BGR binary file ${out}.bgr"
+rgb="$out.bgr"
 convert "$pic" "$rgb"
 # 将BGR二进制文件转换成 C 风格数组
 echo "Generate C source file ${out}.c"
@@ -28,8 +28,8 @@ xxd -i "$rgb" > "$out.c"
 rm "$rgb"
 
 # 获取标识符, 防止标识符和 $out 不一致
-# 取第一行，去掉类型和固定的后缀等, _rgb 是因为前面用的 .rgb 做扩展名
-identifier=$(head -n 1 "$out.c" | sed 's/unsigned char //' | sed 's/_rgb\[\] = {//')
+# 取第一行，去掉类型和固定的后缀等, _bgr 是因为前面用的 .bgr 做扩展名
+identifier=$(head -n 1 "$out.c" | sed 's/unsigned char //' | sed 's/_bgr\[\] = {//')
 echo "identifier: $identifier"
 
 # 获取宽度和高度, 并加入到源文件中
