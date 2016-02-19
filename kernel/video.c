@@ -149,3 +149,32 @@ draw_row(int x, int y, int width, int length, uint32_t color)
         }
     }
 }
+
+/**
+ * 画边框，厚度在区域内
+ *
+ * (x,y)
+ *   V
+ *  +----------------------+--
+ *  |  A    thick          |
+ *  +--+----------------+--+
+ *  |  |                |  |
+ *  |B |                |C | h
+ *  |  |                |  |
+ *  +--+----------------+--+
+ *  |  D                   |
+ *  +----------------------+--
+ *  |         w            |
+ */
+void
+draw_border(int x, int y, int w, int h, int thick, uint32_t color)
+{
+    // Area A
+    draw_row(x, y + thick / 2, thick, w, color);
+    // Area D
+    draw_row(x, y + h - thick + thick / 2, thick, w, color);
+    // Area B
+    draw_column(x + thick / 2, y + thick, thick, h - thick * 2, color);
+    // Area C
+    draw_column(x + w - thick + thick / 2, y + thick, thick, h - thick * 2, color);
+}

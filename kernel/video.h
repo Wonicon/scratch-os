@@ -19,6 +19,8 @@ void draw_column(int x, int y, int width, int length, uint32_t color);
 
 void draw_row(int x, int y, int width, int length, uint32_t color);
 
+void draw_border(int x, int y, int w, int h, int thick, uint32_t color);
+
 void init_video_buffer(void);
 
 void update_screen(void);
