@@ -16,8 +16,8 @@ typedef union __attribute__((__packed__)) {
         uint16_t a     : 1;  // Also available ?
         uint16_t d     : 1;  // Dirty
         uint16_t       : 2;  // Intel reserved
-        uint16_t avail : 7;  // Available for systems programmer use
-        uint16_t frame;
+        uint16_t avail : 3;  // Available for systems programmer use
+        uint32_t frame : 20;
     };
     uint32_t val;
 } PTE;
