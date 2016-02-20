@@ -15,7 +15,7 @@ int serial_printf(const char *fmt, ...);
 #define LOG(s, ...)\
     serial_printf(LOG_COLOR "[%s#%s:%d] " s END "\n", __FILE__, __func__, __LINE__, ## __VA_ARGS__)
 
-#define LOG_EXPR(expr) LOG(STR(expr) " is %x", expr)
+#define LOG_EXPR(expr) LOG(STR(expr) " is 0x%x", expr)
 
 #define PANIC(s, ...)\
     do {\
