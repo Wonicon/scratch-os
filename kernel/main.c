@@ -13,21 +13,21 @@ int
 main(void)
 {
     init_serial();
-    init_video();
+    LOG("Hello World :-)");
+
     init_gdt();
     init_idt();
     init_page();
+    init_video();
     
-    LOG("Hello World :-)");
 
-    /**
-     * Test int
-     */
+    // Test int
     asm volatile ("int $0x0");
 
     test_page();
 
-    //game_mainloop();
+    LOG("Game start");
+    game_mainloop();
 
     return 0;
 }

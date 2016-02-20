@@ -1,4 +1,5 @@
 #include "video.h"
+#include "page.h"
 #include "debug.h"
 #include <inc/string.h>
 
@@ -53,6 +54,9 @@ init_video(void)
     mode_info = *(ModeInfoBlock *)0xf000;
     LOG_EXPR(mode_info.pitch);
     vmem = (void *)mode_info.physbase;
+
+    // 映射显存区域
+    mm_continous_map(get_kpgdir(), (uint32_t)vmem, (uint32_t)vmem, mode_info.Yres * mode_info.pitch);
 }
 
 uint32_t

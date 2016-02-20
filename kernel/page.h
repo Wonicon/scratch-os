@@ -44,7 +44,11 @@ typedef union {
     uint32_t val;
 } LinearAddr;
 
+PDE *get_kpgdir(void);
+
 void init_page(void);
+
+void mm_continous_map(PDE *pgdir, uint32_t paddr_beg, uint32_t vaddr_beg, uint32_t size);
 
 uint32_t alloc_page(void);
 

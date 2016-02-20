@@ -22,7 +22,7 @@ extern uint8_t end[];    // 可执行程序结束虚拟地址(开区间)
 
 static PDE *kpgdir = NULL;
 
-const PDE *
+PDE *
 get_kpgdir(void)
 {
     return kpgdir;
@@ -53,6 +53,7 @@ rounddown(uint32_t addr)
 {
     return addr & (~(PG_SIZE - 1));
 }
+
 
 void
 init_page(void)
@@ -87,54 +88,66 @@ init_page(void)
     kpgdir = (PDE *)(alloc_page() << PG_SIZE_LOG2);
     memset(kpgdir, 0, NPDENTRIES * sizeof(PDE));
 
-    // [ kmap_start, kmap_end )
-    LinearAddr kmap_start = { .val = 0 };
-    LinearAddr kmap_end   = { .val = roundup((uint32_t)end) };
+    // 映射内核和BIOS空间
+    mm_continous_map(kpgdir, 0x0, 0x0, (uint32_t)end);
 
-    LOG_EXPR(kmap_start.val);
-    LOG_EXPR(kmap_start.dir_idx);
-    LOG_EXPR(kmap_end.val);
-    LOG_EXPR(kmap_end.dir_idx);
-
-    int nr_kpde = (kmap_end.val -kmap_start.val - 1) / (PG_SIZE * NPTENTRIES) + 1;
-
-    LOG_EXPR(nr_kpde);
-
-    for (uint32_t dir_idx = kmap_start.dir_idx; dir_idx <= kmap_end.dir_idx; dir_idx++) {
-        PTE *kpgtab = (PTE *)(alloc_page() << PG_SIZE_LOG2);
-        LOG_EXPR(kpgtab);
-        memset(kpgtab, 0, NPTENTRIES * sizeof(PTE));
-        LinearAddr ent = { .dir_idx = dir_idx, .tab_idx = 0, .frame = 0 };
-        for (uint32_t tab_idx = ent.tab_idx; tab_idx < NPTENTRIES && ent.val < kmap_end.val; tab_idx++, ent.tab_idx++) {
-            kpgtab[tab_idx].p = 1;
-            kpgtab[tab_idx].rw = 1;
-            kpgtab[tab_idx].us = 1;
-            kpgtab[tab_idx].frame = ent.frame;
-        }
-        LOG_EXPR(dir_idx);
-        kpgdir[dir_idx].p = 1;
-        kpgdir[dir_idx].rw = 1;
-        kpgdir[dir_idx].us = 1;
-        kpgdir[dir_idx].frame = (uint32_t)kpgtab >> PG_SIZE_LOG2;
-    }
-
-    asm volatile ("mov %0, %%cr3"::"r"(kpgdir));
+    // 开启分页机制
     uint32_t cr0;
+    asm volatile ("mov %0, %%cr3"::"r"(kpgdir));
     asm volatile ("mov %%cr0, %0":"=r"(cr0));
-    LOG_EXPR(cr0);
-    cr0 = cr0 | 0x80000000;
-    asm volatile ("mov %0, %%cr0"::"r"(cr0));
+    asm volatile ("mov %0, %%cr0"::"r"(cr0 | 0x80000000));
 }
 
 /**
- * 分配并初始化一个页目录，返回页目录的物理地址
+ * 将连续的物理地址映射到连续的虚拟地址 [start, end)
+ * 除了页表外不分配页面, 分配的页表不能在映射范围内
  */
-/*
-uint32_t
-alloc_pgdir(void)
+void
+mm_continous_map(PDE *pgdir, uint32_t paddr_beg, uint32_t vaddr_beg, uint32_t size)
 {
+    // 页对齐
+    paddr_beg = roundup(paddr_beg);
+    vaddr_beg = roundup(vaddr_beg);
+    uint32_t paddr_end = rounddown(paddr_beg + size);
+
+    // [ kmap_start, kmap_end )
+    LinearAddr map_beg = { .val = paddr_beg };
+    LinearAddr map_end = { .val = paddr_end };
+    LinearAddr vaddr   = { .val = vaddr_beg };
+
+    LOG_EXPR(map_beg.val);
+    LOG_EXPR(map_beg.dir_idx);
+
+    LOG_EXPR(map_end.val);
+    LOG_EXPR(map_end.dir_idx);
+
+    // NOTE: 虽然 kmap_end 是取不到的地址, 但是页目录下标是可以取到的
+    for (uint32_t dir_idx = map_beg.dir_idx; dir_idx <= map_end.dir_idx; dir_idx++) {
+        // 分配二级页表
+        LinearAddr pgtab_addr = { .frame = alloc_page() };
+        PTE *pgtab = (PTE *)pgtab_addr.val;
+        memset(pgtab, 0, NPTENTRIES * sizeof(PTE));
+
+        // 填写二级页表项
+        LinearAddr pg_addr = { .dir_idx = dir_idx, .tab_idx = 0, .frame = 0 };
+        for (uint32_t tab_idx = pg_addr.tab_idx; tab_idx < NPTENTRIES && pg_addr.val < map_end.val; tab_idx++) {
+            pgtab[tab_idx].p     = 1;
+            pgtab[tab_idx].rw    = 1;
+            pgtab[tab_idx].us    = 1;
+            pgtab[tab_idx].frame = vaddr.frame;
+
+            // 不能用 .tab_idx++, 会回滚
+            vaddr.frame++;
+            pg_addr.frame++;
+        }
+
+        // 填写一级页表项
+        pgdir[dir_idx].p     = 1;
+        pgdir[dir_idx].rw    = 1;
+        pgdir[dir_idx].us    = 1;
+        pgdir[dir_idx].frame = pgtab_addr.frame;
+    }
 }
-*/
 
 /**
  * 返回空闲页的页框号, 同时也是下标
