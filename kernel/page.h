@@ -28,6 +28,22 @@ typedef union __attribute__((__packed__)) {
  */
 typedef PTE PDE;
 
+/**
+ * 分解线性地址字段
+ */
+typedef union {
+    struct {
+        uint32_t offset  : 12;
+        uint32_t tab_idx : 10;
+        uint32_t dir_idx : 10;
+    };
+    struct {
+        uint32_t         : 12;
+        uint32_t frame   : 20;
+    };
+    uint32_t val;
+} LinearAddr;
+
 void init_page(void);
 
 uint32_t alloc_page(void);
