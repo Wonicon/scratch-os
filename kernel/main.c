@@ -27,7 +27,7 @@ main(void)
 
     test_page();
 
-    game_mainloop();
+    //game_mainloop();
 
     return 0;
 }
