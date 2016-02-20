@@ -20,6 +20,14 @@ extern uint8_t end[];    // 可执行程序结束虚拟地址(开区间)
 #define PG_SIZE 0x1000
 #define PG_SIZE_LOG2 12
 
+static PDE *kpgdir = NULL;
+
+const PDE *
+get_kpgdir(void)
+{
+    return kpgdir;
+}
+
 typedef struct PageInfoBlock PageInfo;
 struct PageInfoBlock {
     uint32_t frame;
@@ -33,8 +41,6 @@ struct PageInfoBlock {
 PageInfo *free_page_list;
 
 PageInfo page_pool[PHY_SIZE / PG_SIZE];
-
-PDE *kpgdir = NULL;
 
 uint32_t
 roundup(uint32_t addr)
@@ -72,7 +78,63 @@ init_page(void)
     }
 
     free_page_list = &page_pool[nr_kernel_page];
+
+    /**
+     * 将所有物理内存映射到自身
+     */
+
+    // 申请内核页目录空间
+    kpgdir = (PDE *)(alloc_page() << PG_SIZE_LOG2);
+    memset(kpgdir, 0, NPDENTRIES * sizeof(PDE));
+
+    // [ kmap_start, kmap_end )
+    LinearAddr kmap_start = { .val = 0 };
+    LinearAddr kmap_end   = { .val = roundup((uint32_t)end) };
+
+    LOG_EXPR(kmap_start.val);
+    LOG_EXPR(kmap_start.dir_idx);
+    LOG_EXPR(kmap_end.val);
+    LOG_EXPR(kmap_end.dir_idx);
+
+    int nr_kpde = (kmap_end.val -kmap_start.val - 1) / (PG_SIZE * NPTENTRIES) + 1;
+
+    LOG_EXPR(nr_kpde);
+
+    for (uint32_t dir_idx = kmap_start.dir_idx; dir_idx <= kmap_end.dir_idx; dir_idx++) {
+        PTE *kpgtab = (PTE *)(alloc_page() << PG_SIZE_LOG2);
+        LOG_EXPR(kpgtab);
+        memset(kpgtab, 0, NPTENTRIES * sizeof(PTE));
+        LinearAddr ent = { .dir_idx = dir_idx, .tab_idx = 0, .frame = 0 };
+        for (uint32_t tab_idx = ent.tab_idx; tab_idx < NPTENTRIES && ent.val < kmap_end.val; tab_idx++, ent.tab_idx++) {
+            kpgtab[tab_idx].p = 1;
+            kpgtab[tab_idx].rw = 1;
+            kpgtab[tab_idx].us = 1;
+            kpgtab[tab_idx].frame = ent.frame;
+        }
+        LOG_EXPR(dir_idx);
+        kpgdir[dir_idx].p = 1;
+        kpgdir[dir_idx].rw = 1;
+        kpgdir[dir_idx].us = 1;
+        kpgdir[dir_idx].frame = (uint32_t)kpgtab >> PG_SIZE_LOG2;
+    }
+
+    asm volatile ("mov %0, %%cr3"::"r"(kpgdir));
+    uint32_t cr0;
+    asm volatile ("mov %%cr0, %0":"=r"(cr0));
+    LOG_EXPR(cr0);
+    cr0 = cr0 | 0x80000000;
+    asm volatile ("mov %0, %%cr0"::"r"(cr0));
 }
+
+/**
+ * 分配并初始化一个页目录，返回页目录的物理地址
+ */
+/*
+uint32_t
+alloc_pgdir(void)
+{
+}
+*/
 
 /**
  * 返回空闲页的页框号, 同时也是下标
@@ -130,3 +192,9 @@ test_page(void)
         page = page->next;
     }
 }
+
+/**
+ * 返回的是物理地址
+ */
+uint32_t
+mm_malloc(uint32_t vaddr, uint32_t size);
