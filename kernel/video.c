@@ -98,12 +98,12 @@ draw_pixel_bgr(int x, int y, uint8_t b, uint8_t g, uint8_t r)
 }
 
 /**
- * 画像素点, color 表示原始的颜色值, 格式为 BGR.
+ * 画像素点, color 表示原始的颜色值, 格式为 RGB.
  */
 void
 draw_pixel(int x, int y, int color)
 {
-    draw_pixel_bgr(x, y, color & 0xff, (color >> 8) & 0xff, (color >> 16) & 0xff);
+    draw_pixel_bgr(x, y, (color >> 16) & 0xff, (color >> 8) & 0xff, (color) & 0xff);
 }
 
 
@@ -114,12 +114,13 @@ draw_pixel(int x, int y, int color)
  *     +-+-+-+-+-+-+
  *      ^
  *      bgr[y * w * 3 + x * 3]
+ * RETURN in format of RGB
  */
 uint32_t
 get_color(uint8_t bgr[], int x, int y, int w, int h)
 {
     int index = (y * w + x) * 3;
-    return bgr[index] | (bgr[index + 1] << 8) | (bgr[index + 2] << 16);
+    return (bgr[index] << 16) | (bgr[index + 1] << 8) | bgr[index + 2];
 }
 
 /**
