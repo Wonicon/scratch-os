@@ -66,14 +66,13 @@ init_gdt(void)
 void
 irq_handle(struct StackFrame *frame)
 {
-    LOG_EXPR(frame->eip);
-    LOG_EXPR(frame->cs);
-    LOG_EXPR(frame->eflags);
+    //LOG_EXPR(frame->eip);
+    //LOG_EXPR(frame->cs);
+    //LOG_EXPR(frame->eflags);
 }
 
 
-struct Gatedesc idt[] = {
-    {},
+struct Gatedesc idt[48] = {
 };
 
 void entry(void);
@@ -81,15 +80,22 @@ void entry(void);
 void
 init_idt(void)
 {
-    idt[0].gd_sel = 0x8;
-    idt[0].gd_p = 1;
-    idt[0].gd_dpl = 0;
-    idt[0].gd_s = 0;
-    idt[0].gd_rsv1 = 0;
-    idt[0].gd_args = 0;
-    idt[0].gd_type = STS_IG32;
-    idt[0].gd_off_15_0 = (uint32_t)entry & 0x0000ffff;
-    idt[0].gd_off_31_16 = ((uint32_t)entry & 0xffff0000) >> 16;
+    int i = 32;
+    idt[i].gd_sel = 0x8;
+    idt[i].gd_p = 1;
+    idt[i].gd_dpl = 0;
+    idt[i].gd_s = 0;
+    idt[i].gd_rsv1 = 0;
+    idt[i].gd_args = 0;
+    idt[i].gd_type = STS_IG32;
+    idt[i].gd_off_15_0 = (uint32_t)entry & 0x0000ffff;
+    idt[i].gd_off_31_16 = ((uint32_t)entry & 0xffff0000) >> 16;
+    idt[i + 1] = idt[i];
+    idt[0] = idt[i];
+
+    for (int i = 0; i < 48; i++) {
+        idt[i] = idt[0];
+    }
 
     DTR idtr = {
         .limit = sizeof(idt) - 1,
