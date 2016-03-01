@@ -12,4 +12,13 @@ typedef struct __attribute__((packed)) {
     uint32_t base;  // 线性基地址
 } DTR;
 
+/**
+ * Map to the interruption scene
+ */
+typedef struct __attribute__((packed)) {
+    uint32_t eip;
+    uint32_t cs;
+    uint32_t eflags;
+} StackFrame;
+
 #endif  // KERNEL_SEGMENT

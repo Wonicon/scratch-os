@@ -3,16 +3,6 @@
 #include <kernel/segment.h>
 
 /**
- * Map to the interruption scene
- */
-typedef struct __attribute__((packed)) {
-    uint32_t eip;
-    uint32_t cs;
-    uint32_t eflags;
-} StackFrame;
-
-
-/**
  * init_i8259_pic: Initialize the Intel 8259 Programmable Interrupt Controller
  *
  * The default interruption numbers overlap with Intel's reserved 32 interruptions,

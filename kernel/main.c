@@ -2,6 +2,7 @@
 #include "serial.h"
 #include "video.h"
 #include "page.h"
+#include "segment.h"
 #include <inc/x86.h>
 #include <inc/types.h>
 #include <inc/mmu.h>
@@ -31,7 +32,21 @@ main(void)
     test_page();
 
     LOG("Game start");
-    game_mainloop();
+
+    StackFrame thread_task = {
+        .eip    = (uint32_t)game_mainloop,
+        .cs     = 0x8,
+        .eflags = 0x2,
+    };
+
+    asm volatile (
+        "mov %0, %%eax;"
+        "mov %%eax, %%esp;"
+        "iret"
+        :
+        : "r"(&thread_task)
+        : "eax"
+    );
 
     return 0;
 }
