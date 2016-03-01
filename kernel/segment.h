@@ -12,17 +12,4 @@ typedef struct __attribute__((packed)) {
     uint32_t base;  // 线性基地址
 } DTR;
 
-/**
- * 用于中断服务程序访问中断现场镜像
- */
-struct __attribute__((packed)) StackFrame {
-    uint32_t eip;
-    uint32_t cs;
-    uint32_t eflags;
-};
-
-void init_gdt(void);
-
-void init_idt(void);
-
 #endif  // KERNEL_SEGMENT
