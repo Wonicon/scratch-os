@@ -98,6 +98,12 @@ debug: $(IMAGE)
 gdb:
 	$(GDB) $(GDB_OPTIONS)
 
+gen-disk: lib/fs.c lib/fs.h fs-test/format.c
+	$(CC) -O0 -g -I lib -o $@ lib/fs.c fs-test/format.c
+
+extract: lib/fs.c lib/fs.h fs-test/extract.c
+	$(CC) -O0 -g -I lib -o $@ lib/fs.c fs-test/extract.c
+
 clean:
 	@rm -rf $(OBJ_DIR) 2> /dev/null
 	@rm -rf $(BOOT)    2> /dev/null

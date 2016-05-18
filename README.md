@@ -15,6 +15,15 @@ make debug
 make gdb
 ```
 
+简单文件系统测试：
+```shell
+make gen-disk
+make extract
+./gen-disk <one-file>
+./extract a.disk <another-file>
+diff <one-file> <another-file>
+```
+
 ## 进度
 
 - [x]  引导
